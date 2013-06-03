@@ -1,0 +1,72 @@
+#! /bin/bash
+set -u
+set -e
+
+SPMUSER=sergeio
+
+main () {
+    if [[ $1 == list ]]; then list
+    elif [[ $1 == install ]]; then install $*
+    elif [[ $1 == uninstall ]]; then uninstall $*
+    elif [[ $1 == update ]]; then update $*
+    else usage
+    fi
+}
+
+list () {
+# list all available repos to install.
+    repos_json |
+    grep clone_url |
+    sed -E "s/.*$SPMUSER\/(.*)\.git\",$/\1/"
+}
+
+install () {
+# installs the package, and executes its local `install` script.
+    if [[ $2 == "" ]]; then usage; exit 1; fi
+    INSTALL_DIR=~/code/$2
+    pull_down_repo $*
+    run_repos_installer
+}
+
+pull_down_repo () {
+    PACKAGE_URL=`repos_json | get_value clone_url | grep $2`
+    git clone $PACKAGE_URL $INSTALL_DIR
+}
+
+run_repos_installer () {
+    REPO_INSTALLER=$INSTALL_DIR/install
+    if [ -f $REPO_INSTALLER ]; then
+        $REPO_INSTALLER
+    fi
+}
+
+get_value () {
+# Pulls the value matching the passed in key from the json in STDIN.
+    grep $1 |
+    sed -E "s/^.*$1\": \"(.*)\",$/\1/"
+}
+
+uninstall () {
+# removes the package by deleting it from the filesystem.
+    if [[ $2 == "" ]]; then usage; exit 1; fi
+    INSTALL_DIR=~/code/$2
+    rm -rI $INSTALL_DIR
+}
+
+update () {
+# updates the package
+    if [[ $2 == "" ]]; then usage; exit 1; fi
+    GIT_DIR=~/code/$2/.git/
+    git --git-dir=$GIT_DIR pull origin master
+}
+
+usage () {
+    echo "Usage: spm list|[un]install <package>"
+}
+
+repos_json () {
+# get json data for all repositories owned by $SPMUSER.
+    curl -s https://api.github.com/users/$SPMUSER/repos
+}
+
+main $*

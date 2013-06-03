@@ -1,0 +1,18 @@
+#compdef spm
+
+SPMUSER=sergeio
+
+main () {
+    _arguments \
+        "1: :(install list)"\
+        "2:install :(`repo_list`)"
+}
+
+repo_list () {
+    curl -s https://api.github.com/users/$SPMUSER/repos |
+    grep clone_url |
+    sed -E "s/.*$SPMUSER\/(.*)\.git\",$/\1/" |
+    xargs
+}
+
+main $*

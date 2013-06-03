@@ -1,0 +1,9 @@
+#! /bin/bash
+
+PROJECTDIR=$(cd $(dirname $0); pwd)
+
+mkdir -p ~/bin
+ln -s $PROJECTDIR/spm ~/bin/
+
+mkdir -p ~/.oh-my-zsh/completions/
+ln -s $PROJECTDIR/_spm ~/.oh-my-zsh/completions/

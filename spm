@@ -30,6 +30,7 @@ install () {
 
 pull_down_repo () {
     PACKAGE_URL=`repos_json | get_value clone_url | grep $2`
+    mkdir -p ~/code
     git clone $PACKAGE_URL $INSTALL_DIR
 }
 

@@ -3,6 +3,7 @@ set -u
 set -e
 
 SPMUSER=sergeio
+INSTALL_DIR=~/code/$2
 
 main () {
     if [[ $1 == list ]]; then list
@@ -23,7 +24,6 @@ list () {
 install () {
 # installs the package, and executes its local `install` script.
     if [[ $2 == "" ]]; then usage; exit 1; fi
-    INSTALL_DIR=~/code/$2
     pull_down_repo $*
     run_repos_installer
 }
@@ -50,15 +50,16 @@ get_value () {
 uninstall () {
 # removes the package by deleting it from the filesystem.
     if [[ $2 == "" ]]; then usage; exit 1; fi
-    INSTALL_DIR=~/code/$2
     rm -rI $INSTALL_DIR
 }
 
 update () {
 # updates the package
     if [[ $2 == "" ]]; then usage; exit 1; fi
-    GIT_DIR=~/code/$2/.git/
-    git --git-dir=$GIT_DIR pull origin master
+    (
+        cd $INSTALL_DIR
+        git pull origin master
+    )
 }
 
 usage () {

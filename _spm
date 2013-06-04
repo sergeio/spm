@@ -3,16 +3,43 @@
 SPMUSER=sergeio
 
 main () {
+# https://askql.wordpress.com/2011/01/11/zsh-writing-own-completion/
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
     _arguments \
-        "1: :(install list)"\
-        "2:install :(`repo_list`)"
+        "1: :->action"\
+        '*: :->target'
+
+    case $state in
+    action)
+        _arguments '1:actions:(install uninstall list)'
+    ;;
+    *)
+        case $words[2] in
+        install)
+            compadd "$@" `repo_list`
+        ;;
+        uninstall)
+            compadd "$@" `installed_list`
+        ;;
+        *)
+            _files
+        esac
+    esac
 }
 
 repo_list () {
+# get list of repos from github
     curl -s https://api.github.com/users/$SPMUSER/repos |
     grep clone_url |
     sed -E "s/.*$SPMUSER\/(.*)\.git\",$/\1/" |
     xargs
+}
+
+installed_list () {
+# list of installed programs in ~/code
+    ls ~/code | xargs
 }
 
 main $*
